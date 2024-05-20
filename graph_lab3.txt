@@ -1,0 +1,184 @@
+import random
+import math
+import turtle
+
+def getAdir(seed, variant):
+    random.seed(seed)
+    n = 10 + variant[3]
+
+    matrix = []
+    for i in range(n):
+        row = []
+        for j in range(n):
+            row.append(random.uniform(0, 2.0))
+        matrix.append(row)
+    k = 1.0 - variant[3] * 0.02 - variant[4] * 0.005 - 0.25
+    
+    for i in range(n):
+        for j in range(n):
+            matrix[i][j] *= k
+
+    rounded_matrix = [[0 if element < 1.0 else 1 for element in row] for row in matrix]
+
+    return rounded_matrix
+
+def toUndir(matrix, N):
+    undir = []
+    for i in range(N):
+        undir.append([])
+        for j in range(N):
+            undir[i].append(0)
+    for i in range(N):
+        for j in range(N):
+            undir[i][j] = matrix[i][j] or matrix[j][i]
+    return undir
+
+def draw_circle(x, y):
+    t.pencolor('#f0f0f0')
+    t.penup()
+    t.goto(x, y-radius)
+    t.pendown()
+    t.fillcolor('#f0f0f0')
+    t.begin_fill()
+    t.circle(radius)
+    t.end_fill()
+
+def write_text_in_circle(x, y, text):
+    t.penup()
+    t.goto(x, y-radius/2)
+    t.pendown()
+    t.color('black')
+    t.write(text, align="center", font=("Arial", 12, "normal"))
+
+def draw_line(start_x, start_y, end_x, end_y, is_arrow = False):
+    t.penup()
+    t.goto(start_x, start_y)
+    t.pendown()
+    if is_arrow: 
+        arrow_length = 20
+        t.setheading(t.towards(end_x, end_y))
+        t.forward(t.distance(end_x, end_y) - arrow_length)
+        t.stamp()
+
+    t.goto(end_x, end_y)
+
+    if is_arrow:
+        t.setheading(0)
+
+
+def draw_self_arrow(start_x, start_y, end_x, end_y, is_arrow = False):
+    draw_line(start_x, start_y, start_x + self_arrow_padding, start_y + self_arrow_padding/2)
+    draw_line(start_x + self_arrow_padding, start_y + self_arrow_padding/2, start_x + self_arrow_padding, start_y - self_arrow_padding/2)
+    draw_line(start_x + self_arrow_padding, start_y - self_arrow_padding/2, end_x, end_y, is_arrow)
+
+def draw_broken_arrow(start_x, start_y, end_x, end_y, angle, is_arrow = False):
+    distance_between_points = math.sqrt((end_x - start_x)**2 + (end_y - start_y)**2)
+
+    change = (distance_between_points / (window_height/4)) * radius
+
+    if angle == 90:
+        middle_x = start_x + change
+        middle_y = (start_y + end_y) / 2 
+    elif angle == -90:
+        middle_x = start_x - change
+        middle_y = (start_y + end_y) / 2
+    elif angle == 0:
+        middle_x = (start_x + end_x) / 2
+        middle_y = start_y - change
+    elif angle == 180:
+        middle_x = (start_x + end_x) / 2
+        middle_y = start_y + change
+    
+    draw_line(start_x, start_y, middle_x, middle_y)
+    draw_line(middle_x, middle_y, end_x, end_y, is_arrow)
+
+def angle_between_points(x1, y1, x2, y2):
+    dx = x2 - x1
+    dy = y2 - y1
+    
+    angle_radians = math.atan2(dy, dx)
+    
+    angle_degrees = math.degrees(angle_radians)
+    
+    return angle_degrees
+
+
+
+n = {
+    1: 3,
+    2: 3,
+    3: 0,
+    4: 8,
+}
+
+window_width = 600
+window_height = 600
+margin = 100
+self_arrow_padding = 60
+radius = 20
+vertices = {
+    1: { 'x': margin, 'y': window_height - margin },
+    2: { 'x': (window_width - 2*margin) / 3 + margin, 'y': window_height - margin },
+    3: { 'x': (window_width - 2*margin) / 3*2 + margin, 'y': window_height - margin },
+    4: { 'x': window_width - margin, 'y': window_height - margin },
+    5: { 'x': window_width - margin, 'y': (window_height - 2*margin) / 2 + margin},
+    6: { 'x': window_width - margin, 'y': margin },
+    7: { 'x': (window_width - 2*margin) / 2 + margin, 'y': margin },
+    8: { 'x': margin, 'y': margin },
+    9: { 'x': margin, 'y': (window_height - 2*margin) / 2 + margin },
+    10: { 'x': window_width/ 2, 'y': window_height / 2 },
+}
+
+
+Adir = getAdir(3308, n)
+Undir = toUndir(Adir, 10 + n[3])
+
+has_arrow = False
+
+while True: 
+    print('Введіть: 1 щоб вивести напрямлений чи 0 щоб вивести ненапрямлений')
+    choice = input()
+    if choice == '1':
+        matrix = Adir
+        has_arrow = True
+        break
+    elif choice == '0':
+        matrix = Undir
+        has_arrow == False
+        break
+    else:
+        print('Введно невідому команду\n')
+
+print('\nМатриця:')
+for row in matrix:
+    print(row)
+
+turtle.setup(width=window_width, height=window_height)
+turtle.setworldcoordinates(0, 0, window_width, window_height)
+# turtle.tracer(False)
+
+t = turtle.Turtle()
+
+
+for row_index, row in enumerate(matrix):
+    for column_index, value in enumerate(row):
+        startPoint = vertices[row_index + 1]
+        endPoint = vertices[column_index + 1]
+
+        if value == 1: 
+            angle = angle_between_points(startPoint['x'], startPoint['y'], endPoint['x'], endPoint['y'])
+
+            if row_index == column_index:
+                draw_self_arrow(startPoint['x'], startPoint['y'], endPoint['x'], endPoint['y'], has_arrow)
+            elif angle == 90 or angle == -90 or angle == 0 or angle == 180:
+                draw_broken_arrow(startPoint['x'], startPoint['y'], endPoint['x'], endPoint['y'], angle, has_arrow)
+            else: 
+                draw_line(startPoint['x'], startPoint['y'], endPoint['x'], endPoint['y'], has_arrow)
+
+
+for index, point in vertices.items():
+    draw_circle(point['x'], point['y'])
+    write_text_in_circle(point['x'], point['y'], str(index))
+
+
+turtle.mainloop()
