@@ -3,7 +3,6 @@ import math
 import turtle
 import keyboard
 
-
 random.seed(3308)
 
 def create_matrix_C(n, matrix_B, undir_matrix):
@@ -33,7 +32,7 @@ def find(parent, i):
 
 def union(parent, rank, x, y):
     xroot = find(parent, x)
-    yroot = find(parent, y)
+    yroot = find(parent, y)  # Fix the typo here
     if rank[xroot] < rank[yroot]:
         parent[xroot] = yroot
     elif rank[xroot] > rank[yroot]:
@@ -77,13 +76,12 @@ def drawKraskal(mst):
         t.width(2)
         t.goto(end['x'], end['y'])
 
-        # Drawing circles and labels
         draw_circle(start['x'], start['y'])
         draw_circle(end['x'], end['y'])
         write_text_in_circle(start['x'], start['y'], str(edge[0] + 1))
         write_text_in_circle(end['x'], end['y'], str(edge[1] + 1))
 
-        # Draw the weight of the edge
+    
         mid_x = (start['x'] + end['x']) / 2
         mid_y = (start['y'] + end['y']) / 2
         t.penup()
@@ -211,7 +209,7 @@ vertices = {
     5: {'x': window_width - margin, 'y': (window_height - 2 * margin) / 2 + margin},
     6: {'x': window_width - margin, 'y': margin},
     7: {'x': (window_width - 2 * margin) / 3 * 2 + margin, 'y': margin},
-    8: { 'x': margin, 'y': margin },
+    8: {'x': margin, 'y': margin},
     9: {'x': margin, 'y': (window_height - 2 * margin) / 2 + margin},
     10: {'x': window_width / 2, 'y': window_height / 2},
 }
@@ -251,6 +249,7 @@ for row_index, row in enumerate(matrix):
         if value == 1:
             startPoint = vertices[row_index + 1]
             endPoint = vertices[column_index + 1]
+            # Check if the edge has already been drawn in undirected graph
             if not has_arrow:
                 if (row_index, column_index) in drawn_edges or (column_index, row_index) in drawn_edges:
                     continue
@@ -281,6 +280,10 @@ for row in weighted_matrix:
 mst = kruskal(weighted_matrix)
 drawKraskal(mst)
 
+mst_weight_sum = sum(edge[2] for edge in mst)
+print(f'\nСума ваг ребер знайденого мінімального кістяка: {mst_weight_sum}')
+
 turtle.mainloop()
+
 
 keyboard.unhook_all()
